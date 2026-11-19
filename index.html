@@ -1,317 +1,426 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Danish Shop</title>
+    <title>DANISH SHOP & MOMO SERVICE</title>
     
-    <!-- Google Fonts & Tailwind -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#0F172A',
+                        'primary-bright': '#0284C7',
+                        'accent-amber': '#FACC15',
+                        'accent-hover': '#EAB308'
+                    },
+                    fontFamily: {
+                        'heading': ['Plus Jakarta Sans', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
-        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-glass {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 132, 199, 0.9) 100%);
+            backdrop-filter: blur(16px);
+        }
+        
+        /* Smooth Hide/Show */
+        .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Card Hover Effects */
+        .product-card { transition: all 0.3s ease; }
+        .product-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); 
+            border-color: #0284C7;
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #0284C7; border-radius: 4px; }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen flex flex-col">
+<body class="bg-[#F8FAFC] font-body text-slate-800 antialiased pt-20 pb-20 md:pb-0">
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="fixed inset-0 bg-[#0F172A] z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
-            <div class="bg-[#0284C7] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="lock" class="text-white w-8 h-8"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Admin Akses</h2>
-            <p class="text-slate-500 text-sm mb-6">Masukkan password untuk mengelola katalog.</p>
-            
-            <input type="password" id="adminPassword" placeholder="Password Admin..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 outline-none mb-4 text-center font-bold tracking-widest">
-            
-            <button onclick="loginAdmin()" id="btnLogin" class="w-full bg-[#0F172A] hover:bg-[#0284C7] text-white font-bold py-3 rounded-xl transition">
-                Masuk Dashboard
-            </button>
-            <p id="loginError" class="text-red-500 text-sm mt-3 hidden font-medium"></p>
-        </div>
-    </div>
-
-    <!-- DASHBOARD NAVBAR -->
-    <nav class="bg-[#0F172A] text-white py-4 px-6 shadow-md flex justify-between items-center hidden" id="adminNav">
-        <div class="flex items-center gap-3">
-            <i data-lucide="cpu" class="text-[#FACC15]"></i>
-            <h1 class="font-bold text-lg tracking-wide">DANISH<span class="text-[#0284C7]">ADMIN</span></h1>
-        </div>
-        <button onclick="logoutAdmin()" class="bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-lg transition flex items-center gap-2">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
-        </button>
-    </nav>
-
-    <!-- MAIN DASHBOARD CONTENT -->
-    <main class="flex-grow p-6 hidden flex-col" id="adminMain">
-        <div class="max-w-6xl mx-auto w-full">
-            
-            <!-- Header & Stats -->
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Kelola Katalog Produk</h2>
-                    <p class="text-slate-500 text-sm mt-1">Tambah, edit, atau hapus layanan di website utama.</p>
-                </div>
-                <button onclick="openModal()" class="bg-[#0284C7] hover:bg-[#0369A1] text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#0284C7]/30 flex items-center gap-2 transition">
-                    <i data-lucide="plus" class="w-5 h-5"></i> Tambah Produk Baru
-                </button>
-            </div>
-
-            <!-- Data Table -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                                <th class="py-3 px-4 font-semibold">ID</th>
-                                <th class="py-3 px-4 font-semibold">Nama Produk/Layanan</th>
-                                <th class="py-3 px-4 font-semibold">Kategori</th>
-                                <th class="py-3 px-4 font-semibold">Harga</th>
-                                <th class="py-3 px-4 font-semibold">Status</th>
-                                <th class="py-3 px-4 font-semibold text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody" class="text-sm">
-                            <tr>
-                                <td colspan="6" class="text-center py-8 text-slate-400">Loading data dari Google Sheets...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- MODAL TAMBAH PRODUK -->
-    <div id="addModal" class="fixed inset-0 bg-black/60 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl transform transition-all">
-            <div class="bg-[#0F172A] px-6 py-4 flex justify-between items-center">
-                <h3 class="text-white font-bold text-lg">Tambah Produk Baru</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
-            <form id="addForm" class="p-6 space-y-4" onsubmit="submitProduct(event)">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Produk / Layanan *</label>
-                    <input type="text" id="inpNama" required class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#0284C7] outline-none">
+    <!-- DESKTOP NAVBAR (Sticky Glass) -->
+    <nav class="glass fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="cpu" class="text-accent-amber w-8 h-8"></i>
+                    <div>
+                        <h1 class="font-heading font-bold text-white text-xl tracking-tight leading-none">DANISH SHOP</h1>
+                        <span class="text-primary-bright text-xs font-semibold">& MOMO SERVICE</span>
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Kategori *</label>
-                        <select id="inpKategori" required class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#0284C7] outline-none bg-white">
-                            <option value="digital">Digital & Custom</option>
-                            <option value="software">Software Original</option>
-                            <option value="hardware">Laptop & Hardware</option>
-                            <option value="servis">Jasa Servis</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Status *</label>
-                        <select id="inpStatus" required class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#0284C7] outline-none bg-white">
-                            <option value="Tersedia">Tersedia</option>
-                            <option value="Bisa Custom">Bisa Custom</option>
-                            <option value="Konsultasi">Konsultasi</option>
-                            <option value="Stok Habis">Stok Habis</option>
-                        </select>
-                    </div>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#beranda" class="text-white hover:text-accent-amber transition font-medium">Beranda</a>
+                    <a href="#tentang-kami" class="text-white hover:text-accent-amber transition font-medium">Tentang Kami</a>
+                    <a href="#katalog" class="text-white hover:text-accent-amber transition font-medium">Katalog Lengkap</a>
+                    <a href="#katalog?filter=servis" class="text-white hover:text-accent-amber transition font-medium">Jasa Servis</a>
+                    <a href="https://wa.me/6280000000000" target="_blank" class="bg-accent-amber hover:bg-accent-hover text-primary-dark font-bold px-5 py-2 rounded-full transition shadow-lg shadow-accent-amber/30 flex items-center gap-2">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> Pesan Custom
+                    </a>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Harga Tampil *</label>
-                    <input type="text" id="inpHarga" required placeholder="Contoh: Mulai Rp 150.000" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#0284C7] outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Deskripsi Singkat *</label>
-                    <textarea id="inpDeskripsi" required rows="3" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-[#0284C7] outline-none"></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-slate-500 font-semibold hover:bg-slate-100 rounded-lg">Batal</button>
-                    <button type="submit" id="btnSubmit" class="px-5 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white font-semibold rounded-lg flex items-center gap-2">
-                        Simpan Produk
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-white p-2">
+                        <i data-lucide="menu" class="w-7 h-7"></i>
                     </button>
                 </div>
-            </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MOBILE SIDEBAR (Slide-Over) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="mobile-sidebar" class="sidebar-glass fixed top-0 right-0 h-full w-80 z-50 transform translate-x-full transition-transform duration-300 shadow-2xl overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="cpu" class="text-accent-amber w-8 h-8"></i>
+                    <div>
+                        <h2 class="font-heading font-bold text-white text-lg leading-none">DANISH SHOP</h2>
+                        <span class="text-primary-bright text-xs font-semibold bg-white/10 px-2 py-0.5 rounded">Official Dev & Servis</span>
+                    </div>
+                </div>
+                <button id="close-sidebar" class="text-white/70 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="flex flex-col space-y-2">
+                <a href="#beranda" class="sidebar-link flex items-center gap-3 text-white py-3 px-4 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="home" class="w-5 h-5 text-primary-bright"></i> Beranda
+                </a>
+                <a href="#katalog" class="sidebar-link flex items-center gap-3 text-white py-3 px-4 rounded-lg hover:bg-white/10 transition border-l-2 border-accent-amber bg-white/5">
+                    <i data-lucide="layout-grid" class="w-5 h-5 text-accent-amber"></i> Katalog 25+ Layanan
+                </a>
+                <a href="#tentang-kami" class="sidebar-link flex items-center gap-3 text-white py-3 px-4 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="info" class="w-5 h-5 text-primary-bright"></i> Tentang Kami
+                </a>
+            </div>
+
+            <div class="mt-12 bg-white/10 p-4 rounded-xl border border-white/10">
+                <h3 class="text-white font-semibold mb-3 text-sm">Butuh Bantuan Cepat?</h3>
+                <a href="https://wa.me/6280000000000" target="_blank" class="w-full bg-accent-amber text-primary-dark font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-accent-amber/20 hover:bg-accent-hover transition">
+                    <i data-lucide="message-square" class="w-5 h-5"></i> Chat Teknisi / Admin
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- BERANDA -->
+        <section id="beranda" class="page-section active">
+            <div class="bg-primary-dark rounded-3xl p-8 md:p-16 text-center text-white shadow-2xl relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                <div class="relative z-10">
+                    <span class="bg-primary-bright/20 text-primary-bright border border-primary-bright px-4 py-1.5 rounded-full text-sm font-bold tracking-wide uppercase mb-6 inline-block">High-Tech Solutions</span>
+                    <h2 class="text-4xl md:text-6xl font-heading font-extrabold mb-6 leading-tight">Solusi Digital Custom & <br><span class="text-accent-amber">Hardware Terpercaya</span></h2>
+                    <p class="text-lg text-slate-300 mb-10 max-w-2xl mx-auto">Dari Pembuatan Sistem Kustom, Aplikasi Kasir, Lisensi Original, hingga Servis Laptop Mati Total. Semua selesai di satu tempat.</p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="#katalog" class="bg-accent-amber hover:bg-accent-hover text-primary-dark font-bold px-8 py-3 rounded-full transition shadow-[0_0_20px_rgba(250,204,21,0.4)]">Jelajahi Katalog</a>
+                        <a href="https://wa.me/6280000000000" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-8 py-3 rounded-full transition backdrop-blur-sm">Konsultasi Gratis</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KATALOG -->
+        <section id="katalog" class="page-section pt-4">
+            <div class="mb-8">
+                <h2 class="text-3xl font-heading font-bold text-primary-dark">Katalog Produk & Layanan Terpadu</h2>
+                <p class="text-slate-500 mt-2">Temukan 25+ layanan digital, software, hardware, dan servis kami.</p>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                <div class="w-full md:w-1/3 relative">
+                    <i data-lucide="search" class="absolute left-3 top-3 text-slate-400 w-5 h-5"></i>
+                    <input type="text" id="searchInput" placeholder="Cari website, lisensi, servis laptop..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary-bright focus:ring-2 focus:ring-primary-bright/20 outline-none transition bg-white shadow-sm">
+                </div>
+                <div class="flex overflow-x-auto w-full md:w-auto gap-2 pb-2 md:pb-0 hide-scrollbar" id="filterButtons">
+                    <button data-filter="all" class="filter-btn active bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Semua</button>
+                    <button data-filter="digital" class="filter-btn bg-white border border-slate-200 text-slate-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary-bright hover:text-primary-bright transition">Digital & Custom</button>
+                    <button data-filter="software" class="filter-btn bg-white border border-slate-200 text-slate-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary-bright hover:text-primary-bright transition">Software Original</button>
+                    <button data-filter="hardware" class="filter-btn bg-white border border-slate-200 text-slate-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary-bright hover:text-primary-bright transition">Laptop & Hardware</button>
+                    <button data-filter="servis" class="filter-btn bg-white border border-slate-200 text-slate-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:border-primary-bright hover:text-primary-bright transition">Momo Service</button>
+                </div>
+            </div>
+
+            <!-- Grid Catalog -->
+            <div id="catalogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Data di-render lewat JavaScript -->
+            </div>
+            
+            <div class="mt-8 text-center text-xs text-slate-400">
+                <button id="refreshDataBtn" class="hover:text-primary-bright underline"><i data-lucide="refresh-cw" class="w-3 h-3 inline"></i> Sinkronisasi Katalog Terbaru</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOBILE BOTTOM QUICK BAR (Khusus Smartphone) -->
+    <div class="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-40 pb-safe">
+        <div class="flex justify-around items-center p-3">
+            <a href="#beranda" class="flex flex-col items-center text-slate-500 hover:text-primary-bright transition">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Beranda</span>
+            </a>
+            <a href="#katalog" class="flex flex-col items-center text-slate-500 hover:text-primary-bright transition">
+                <i data-lucide="grid" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Katalog</span>
+            </a>
+            <a href="https://wa.me/6280000000000" class="flex flex-col items-center text-primary-dark">
+                <div class="bg-accent-amber p-3 rounded-full -mt-8 shadow-lg shadow-accent-amber/40 border-4 border-white">
+                    <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[10px] mt-1 font-bold">Order</span>
+            </a>
+            <button id="bottom-menu-btn" class="flex flex-col items-center text-slate-500 hover:text-primary-bright transition">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+                <span class="text-[10px] mt-1 font-medium">Menu</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
     <script>
+        // Init Icons
         lucide.createIcons();
 
-        const GAS_URL = "URL_WEB_APP_GAS_ANDA_DISINI"; // GANTI DENGAN URL WEB APP GAS ANDA
-        let activePassword = "";
-
-        // UI Toggles
-        const loginScreen = document.getElementById('loginScreen');
-        const adminNav = document.getElementById('adminNav');
-        const adminMain = document.getElementById('adminMain');
-        const loginError = document.getElementById('loginError');
-
-        function loginAdmin() {
-            const pass = document.getElementById('adminPassword').value;
-            const btn = document.getElementById('btnLogin');
+        // 1. STATIC FALLBACK DATA (25+ Item Sesuai Spesifikasi)
+        const fallbackCatalog = [
+            // A. Digital Custom
+            { id: 1, nama: "Jasa Pembuatan Website Custom", harga: "Mulai Rp 1.500.000", kategori: "digital", status: "Bisa Custom", desc: "Company Profile, Toko Online, Portal Sekolah/Instansi." },
+            { id: 2, nama: "Aplikasi Kasir (POS) & Stok", harga: "Mulai Rp 750.000", kategori: "digital", status: "Bisa Custom", desc: "Bisa Request Fitur Sesuai Jenis Usaha." },
+            { id: 3, nama: "Sistem Info & DB AppScript", harga: "Mulai Rp 500.000", kategori: "digital", status: "Bisa Custom", desc: "Otomasi Laporan & Admin Google Sheets." },
+            { id: 4, nama: "Bot WhatsApp / Telegram", harga: "Mulai Rp 350.000", kategori: "digital", status: "Bisa Custom", desc: "Auto-Reply, CS Otomatis & Notifikasi Tagihan." },
+            { id: 5, nama: "Template Excel Keuangan", harga: "Rp 150.000", kategori: "digital", status: "Bisa Custom", desc: "Spreadsheet Bisnis Siap Pakai (Bisa Custom Rumus)." },
+            { id: 6, nama: "Undangan Digital & Desain", harga: "Mulai Rp 100.000", kategori: "digital", status: "Tersedia", desc: "Website undangan interaktif & konten promosi." },
             
-            if(!pass) return;
+            // B. Software Original
+            { id: 7, nama: "Windows 10 / 11 Pro Original", harga: "Rp 250.000", kategori: "software", status: "Tersedia", desc: "Lisensi Aktivasi Permanen & Resmi." },
+            { id: 8, nama: "Microsoft Office 2021 / 365", harga: "Rp 350.000", kategori: "software", status: "Tersedia", desc: "Paket Lengkap Word, Excel, PPT." },
+            { id: 9, nama: "Software Desain Grafis", harga: "Hubungi Admin", kategori: "software", status: "Tersedia", desc: "Paket Lengkap CorelDRAW, Photoshop, Illustrator." },
+            { id: 10, nama: "Software Video Editing", harga: "Hubungi Admin", kategori: "software", status: "Tersedia", desc: "Premiere Pro, CapCut Pro, Filmora." },
+            { id: 11, nama: "Antivirus Premium 1 Tahun", harga: "Rp 150.000", kategori: "software", status: "Tersedia", desc: "Kaspersky / Bitdefender / ESET." },
+            { id: 12, nama: "Jasa Instalasi via Remote", harga: "Rp 50.000 / App", kategori: "software", status: "Tersedia", desc: "Instalasi jarak jauh via TeamViewer / AnyDesk." },
+
+            // C. Hardware
+            { id: 13, nama: "Laptop Bisnis & Mahasiswa", harga: "Mulai Rp 4.500.000", kategori: "hardware", status: "Tersedia", desc: "Baru/Second Siap Pakai + Bonus Instalasi." },
+            { id: 14, nama: "Laptop Gaming & Desain", harga: "Mulai Rp 8.000.000", kategori: "hardware", status: "Pre-Order", desc: "Performa Tinggi Bergaransi Resmi." },
+            { id: 15, nama: "Jasa Rakit PC Custom", harga: "Sesuai Budget", kategori: "hardware", status: "Bisa Custom", desc: "Rakit PC Office, Editing, atau Gaming." },
+            { id: 16, nama: "Upgrade SSD NVMe / SATA", harga: "Mulai Rp 350.000", kategori: "hardware", status: "Tersedia", desc: "Bikin Laptop Lemot Jadi Ngebut 10x Lipat." },
+            { id: 17, nama: "Upgrade RAM Laptop/PC", harga: "Mulai Rp 250.000", kategori: "hardware", status: "Tersedia", desc: "Memori DDR4 / DDR5 Original Bergaransi." },
+            { id: 18, nama: "Sparepart Laptop", harga: "Bervariasi", kategori: "hardware", status: "Tersedia", desc: "Baterai, Charger Original, Keyboard, LCD." },
+            { id: 19, nama: "Aksesoris & Periferal", harga: "Mulai Rp 50.000", kategori: "hardware", status: "Tersedia", desc: "Mouse Wireless, Mech Keyboard, Headset, Router." },
+
+            // D. Servis
+            { id: 20, nama: "Instal Ulang OS", harga: "Rp 100.000", kategori: "servis", status: "Tersedia", desc: "Windows / macOS + Paket Software Lengkap. Data Aman." },
+            { id: 21, nama: "Servis Motherboard / Mati Total", harga: "Cek Dulu", kategori: "servis", status: "Konsultasi", desc: "Penanganan Teknisi Berpengalaman tingkat komponen." },
+            { id: 22, nama: "Pembersihan Debu & Pasta", harga: "Rp 150.000", kategori: "servis", status: "Tersedia", desc: "Ganti Thermal Paste, Atasi Laptop Overheat/Panas." },
+            { id: 23, nama: "Perbaikan Engsel Patah", harga: "Mulai Rp 250.000", kategori: "servis", status: "Konsultasi", desc: "Perbaikan engsel dan casing laptop. Kokoh kembali." },
+            { id: 24, nama: "Recovery Penyelamatan Data", harga: "Mulai Rp 300.000", kategori: "servis", status: "Konsultasi", desc: "HDD / Flashdisk / SSD Terformat/Rusak." },
+            { id: 25, nama: "Pemasangan LAN & WiFi", harga: "Sesuai Lokasi", kategori: "servis", status: "Bisa Custom", desc: "Setting Mikrotik & Router Kantor/Sekolah." }
+        ];
+
+        let catalogData = [...fallbackCatalog];
+        const GAS_URL = "URL_WEB_APP_GAS_ANDA_DISINI"; // << MASUKKAN URL GAS DI SINI
+        const WA_NUMBER = "6280000000000";
+
+        // 2. RENDER CATALOG FUNCTION
+        function renderCatalog(data) {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = '';
             
-            // Animasi Loading
-            btn.innerHTML = "Memverifikasi...";
-            btn.disabled = true;
-
-            // Uji ambil data katalog sekalian untuk cek koneksi
-            fetch(GAS_URL)
-                .then(res => res.json())
-                .then(data => {
-                    // Karena verifikasi pass asli ada di backend saat POST, kita simpan pass di memori
-                    // Jika password salah saat request POST (Tambah/Hapus), sistem akan menolak
-                    activePassword = pass;
-                    
-                    loginScreen.classList.add('opacity-0', 'pointer-events-none');
-                    setTimeout(() => {
-                        loginScreen.classList.add('hidden');
-                        adminNav.classList.remove('hidden');
-                        adminMain.classList.remove('hidden');
-                        adminMain.classList.add('flex');
-                        loadTableData(data.data.katalog);
-                    }, 300);
-                })
-                .catch(err => {
-                    loginError.innerText = "Gagal terhubung ke server.";
-                    loginError.classList.remove('hidden');
-                })
-                .finally(() => {
-                    btn.innerHTML = "Masuk Dashboard";
-                    btn.disabled = false;
-                });
-        }
-
-        function logoutAdmin() {
-            activePassword = "";
-            document.getElementById('adminPassword').value = "";
-            adminNav.classList.add('hidden');
-            adminMain.classList.add('hidden');
-            adminMain.classList.remove('flex');
-            loginScreen.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-        }
-
-        // Render Table
-        function loadTableData(katalogArray) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            if(!katalogArray || katalogArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">Belum ada data produk.</td></tr>';
+            if (data.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-slate-500 py-10">Produk tidak ditemukan.</div>';
                 return;
             }
 
-            // Urutkan dari yang terbaru (asumsi ID mengandung timestamp atau baris terbawah)
-            katalogArray.reverse().forEach(item => {
-                let badgeColor = item.Status.includes('Custom') ? 'bg-blue-100 text-blue-700' : 
-                                (item.Status.includes('Habis') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
+            data.forEach(item => {
+                const isCustom = item.status.toLowerCase().includes('custom');
+                const isHabis = item.status.toLowerCase().includes('habis') || item.status.toLowerCase().includes('penuh');
                 
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                        <td class="py-3 px-4 text-xs font-mono text-slate-400">${item.ID.toString().substring(0, 10)}...</td>
-                        <td class="py-3 px-4 font-medium text-slate-800">${item.Nama_Item}</td>
-                        <td class="py-3 px-4 text-sm text-slate-500 uppercase">${item.Kategori}</td>
-                        <td class="py-3 px-4 text-sm font-semibold text-[#0284C7]">${item.Harga}</td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 text-xs font-bold rounded ${badgeColor}">${item.Status}</span></td>
-                        <td class="py-3 px-4 text-center">
-                            <button onclick="deleteProduct('${item.ID}', '${item.Nama_Item}')" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition" title="Hapus Produk">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </td>
-                    </tr>
+                const badgeClass = isCustom 
+                    ? 'bg-primary-bright/10 text-primary-bright border-primary-bright' 
+                    : (isHabis ? 'bg-red-100 text-red-600 border-red-200' : 'bg-green-100 text-green-700 border-green-200');
+                
+                const btnClass = isHabis 
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                    : (isCustom ? 'bg-accent-amber hover:bg-accent-hover text-primary-dark shadow-[0_4px_14px_rgba(250,204,21,0.3)]' : 'bg-primary-dark hover:bg-slate-800 text-white');
+                
+                const textBtn = isCustom ? 'Konsultasi Custom' : (isHabis ? 'Stok Habis' : 'Pesan via WA');
+                
+                // Buat pesan otomatis WA
+                const waText = encodeURIComponent(`Halo Admin DANISH SHOP & MOMO SERVICE, saya tertarik untuk memesan/konsultasi mengenai: *${item.nama}*. Mohon info lebih lanjut.`);
+                const linkWA = isHabis ? '#' : `https://wa.me/${WA_NUMBER}?text=${waText}`;
+
+                const cardHTML = `
+                    <div class="product-card bg-white border border-slate-200 rounded-2xl p-5 flex flex-col h-full relative overflow-hidden group">
+                        <div class="absolute top-4 right-4 border text-[10px] font-bold px-2 py-1 rounded ${badgeClass}">${item.status}</div>
+                        <div class="mt-4 mb-2">
+                            <h3 class="font-heading font-bold text-lg text-primary-dark leading-tight">${item.nama}</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase font-semibold tracking-wider">${item.kategori.replace('-', ' ')}</p>
+                        </div>
+                        <p class="text-sm text-slate-500 flex-grow mb-4 leading-relaxed">${item.desc}</p>
+                        <div class="mt-auto border-t border-slate-100 pt-4">
+                            <div class="font-bold text-primary-bright text-lg mb-3">${item.harga}</div>
+                            <a href="${linkWA}" ${isHabis ? '' : 'target="_blank"'} class="w-full block text-center py-2.5 rounded-xl font-semibold text-sm transition ${btnClass}">
+                                ${textBtn}
+                            </a>
+                        </div>
+                    </div>
                 `;
+                grid.insertAdjacentHTML('beforeend', cardHTML);
             });
-            lucide.createIcons();
         }
 
-        // Modal Logic
-        const modal = document.getElementById('addModal');
-        function openModal() { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-        function closeModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); document.getElementById('addForm').reset(); }
+        // 3. FETCH DATA (Stale-While-Revalidate)
+        async function fetchCatalogData() {
+            const cached = localStorage.getItem('danishShop_Catalog');
+            const cacheTime = localStorage.getItem('danishShop_Time');
+            const now = new Date().getTime();
 
-        // Tambah Data (POST)
-        function submitProduct(e) {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.innerHTML = "Menyimpan..."; btnSubmit.disabled = true;
+            // Jika ada cache dan usianya < 10 menit, pakai cache langsung
+            if (cached && cacheTime && (now - cacheTime < 600000)) {
+                catalogData = JSON.parse(cached);
+                renderCatalog(catalogData);
+                // Background sync
+                silentFetchGAS();
+                return;
+            }
 
-            const payload = {
-                password: activePassword,
-                action: "add",
-                nama: document.getElementById('inpNama').value,
-                kategori: document.getElementById('inpKategori').value,
-                status: document.getElementById('inpStatus').value,
-                harga: document.getElementById('inpHarga').value,
-                deskripsi: document.getElementById('inpDeskripsi').value
-            };
+            // Jika belum ada cache, pakai fallback render cepat, lalu fetch
+            renderCatalog(catalogData); 
+            if(GAS_URL !== "URL_WEB_APP_GAS_ANDA_DISINI"){
+                silentFetchGAS(true); // true = force re-render setelah fetch
+            }
+        }
 
-            fetch(GAS_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Sukses: " + data.message);
-                    closeModal();
-                    refreshTable(); // Refresh tabel setelah tambah
-                } else {
-                    alert("Gagal: " + data.message); // Biasanya karena password salah
+        async function silentFetchGAS(forceRender = false) {
+            try {
+                const response = await fetch(GAS_URL);
+                const json = await response.json();
+                if (json.status === "success" && json.data.katalog) {
+                    const mappedData = json.data.katalog.map(row => ({
+                        id: row.ID, nama: row.Nama_Item, harga: row.Harga, 
+                        kategori: row.Kategori, status: row.Status, desc: row.Deskripsi
+                    }));
+                    localStorage.setItem('danishShop_Catalog', JSON.stringify(mappedData));
+                    localStorage.setItem('danishShop_Time', new Date().getTime());
+                    
+                    if (forceRender) {
+                        catalogData = mappedData;
+                        renderCatalog(catalogData);
+                    }
                 }
-            })
-            .catch(err => alert("Terjadi kesalahan sistem."))
-            .finally(() => { btnSubmit.innerHTML = "Simpan Produk"; btnSubmit.disabled = false; });
+            } catch (err) { console.log("Gagal fetch GAS, menggunakan data fallback/cache lokal."); }
         }
 
-        // Hapus Data (POST)
-        function deleteProduct(id, nama) {
-            if(!confirm(`Yakin ingin menghapus produk:\n"${nama}" ?\n\nAksi ini tidak dapat dibatalkan.`)) return;
+        // 4. SEARCH & FILTER LOGIC
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
 
-            const payload = {
-                password: activePassword,
-                action: "delete",
-                id: id
-            };
+        function applyFilters() {
+            const query = searchInput.value.toLowerCase();
+            const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
 
-            // Loading state on cursor
-            document.body.style.cursor = 'wait';
-
-            fetch(GAS_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Produk berhasil dihapus!");
-                    refreshTable();
-                } else {
-                    alert("Gagal: " + data.message);
-                }
-            })
-            .catch(err => alert("Terjadi kesalahan sistem."))
-            .finally(() => { document.body.style.cursor = 'default'; });
+            const filtered = catalogData.filter(item => {
+                const matchQuery = item.nama.toLowerCase().includes(query) || item.desc.toLowerCase().includes(query);
+                const matchCategory = activeFilter === 'all' || item.kategori.toLowerCase() === activeFilter;
+                return matchQuery && matchCategory;
+            });
+            renderCatalog(filtered);
         }
 
-        // Refresh Data API
-        function refreshTable() {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">Memperbarui data...</td></tr>';
-            fetch(GAS_URL)
-                .then(res => res.json())
-                .then(data => loadTableData(data.data.katalog));
+        searchInput.addEventListener('input', applyFilters);
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-primary-dark', 'text-white');
+                    b.classList.add('bg-white', 'text-slate-600');
+                });
+                e.target.classList.remove('bg-white', 'text-slate-600');
+                e.target.classList.add('active', 'bg-primary-dark', 'text-white');
+                applyFilters();
+            });
+        });
+
+        // Tombol Sinkronisasi Paksa
+        document.getElementById('refreshDataBtn').addEventListener('click', () => {
+            localStorage.removeItem('danishShop_Time');
+            fetchCatalogData();
+            alert("Sedang menyinkronkan data katalog terbaru...");
+        });
+
+        // 5. ROUTING & UI INTERACTIONS (Sidebar, Hash)
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const botMenuBtn = document.getElementById('bottom-menu-btn');
+        const closeBtn = document.getElementById('close-sidebar');
+
+        function toggleMenu() {
+            sidebar.classList.toggle('translate-x-full');
+            overlay.classList.toggle('hidden');
         }
+
+        [menuBtn, botMenuBtn, closeBtn, overlay].forEach(el => el?.addEventListener('click', toggleMenu));
+        document.querySelectorAll('.sidebar-link').forEach(el => el.addEventListener('click', toggleMenu));
+
+        function handleHash() {
+            let hash = window.location.hash || '#beranda';
+            // Bersihkan parameter kueri dari hash (misal #katalog?filter=servis)
+            const cleanHash = hash.split('?')[0]; 
+            
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            const targetSection = document.querySelector(cleanHash);
+            if (targetSection) targetSection.classList.add('active');
+            
+            // Auto filter jika ada parameter di URL
+            if (hash.includes('?filter=servis')) {
+                document.querySelector('[data-filter="servis"]')?.click();
+            }
+            window.scrollTo(0, 0);
+        }
+
+        window.addEventListener('hashchange', handleHash);
+        
+        // INITIALIZE
+        handleHash();
+        fetchCatalogData();
+
     </script>
 </body>
 </html>
